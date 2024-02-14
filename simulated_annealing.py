@@ -9,7 +9,7 @@ class Pessoa:
 class Aviao:
     def __init__(self, capacidade):
         self.capacidade = capacidade
-        self.pessoas = [] # Integer arr
+        self.pessoas = [] # Pessoa arr
         self.peso_atual = 0
         self.valor_atual = 0
 
@@ -17,7 +17,9 @@ class Aviao:
             self.pessoas.append(pessoa)
             self.peso_atual += pessoa.peso
             self.valor_atual += pessoa.valor
-
+    
+    def pessoa_no_aviao(self, id):
+            return id in self.pessoas
             # soma valor caso tenha relacao com alguem já dentro do aviao
 
     def remover_pessoa(self, index):
@@ -25,9 +27,11 @@ class Aviao:
         self.valor_atual -= self.pessoas[index].valor
         return self.pessoas.pop(index)
 
+    def calcula_valor(self):
+        return sum(pessoa.valor for pessoa in self.pessoas)
+
 class Instancia:
-    def __init__(self, pessoas, quantidade_avioes, avioes, relacoes_amizade):
-        self.quantidade_avioes = quantidade_avioes
+    def __init__(self, pessoas, avioes, relacoes_amizade):
         self.pessoas = pessoas
         self.avioes = avioes
         self.relacoes_amizade = relacoes_amizade
@@ -62,15 +66,8 @@ class Solucao:
     # agraga valor de cada aviao mais o custo das relacoes de amizade
     def calcular_valor_total(self):
         for aviao in self.avioes:
-            self.valor += aviao.valor_atual
-            for i in range(0, len(aviao.pessoas) - 1):
-                for j in range(i + 1, range(len(aviao.pessoas) - 1)):
-                    pessoa1 = aviao.pessoas[i].id
-                    pessoa2 = aviao.pessoas[j].id
-                    self.valor += self.relacoes_amizade[pessoa1][pessoa2] 
+            self.valor += aviao.calcula_valor() + calcula_custo_relacoes(aviao.pessoas, self.relacoes_amizade)
                 
-
-
 # Lê uma instância do arquivo nome_arquivo
 def le_instancia(nome_arquivo):
     with open(nome_arquivo, 'r') as f:
@@ -80,26 +77,51 @@ def le_instancia(nome_arquivo):
     valores_pessoas = list(map(int, linhas[1].split()))
     relacoes_amizade = [list(map(int, linha.split())) for linha in linhas[2:numero_pessoas+2]]
     pesos_pessoas = list(map(int, linhas[4 + numero_pessoas].split()))
-
     pessoas = [Pessoa(valor, peso) for valor, peso in zip(valores_pessoas, pesos_pessoas)]
 
     last_id = 0
     for pessoa in pessoas:
-        pessoa.id = last_id + 1
+        pessoa.id = last_id
+        last_id += 1
 
     avioes = []
     m = 10
     capacidade_total = sum(pesos_pessoas)
-    capacidade_por_aviao = int(0.8 / m * capacidade_total)    
-    for _ in range(1, 10):
+    capacidade_por_aviao = int((0.8 / m) * capacidade_total) 
+    for _ in range(m):
         avioes.append(Aviao(capacidade_por_aviao))
     
     return Instancia(pessoas, avioes, relacoes_amizade)    
 
+# Calcula o custo da relacao entre pessoas num mesmo aviao
+def calcula_custo_relacoes(lista_pessoas, matriz_relacoes):
+    custo_relacoes = 0
+    print("Numero de pessoas no aviao", len(lista_pessoas))
+    if len(lista_pessoas) > 0:
+        for i in range(0, len(lista_pessoas) - 1):
+            for j in range(i + 1, len(lista_pessoas) - 1):
+                pessoa1 = lista_pessoas[i].id
+                pessoa2 = lista_pessoas[j].id
+
+                custo_relacao = 0
+
+                if pessoa1 < pessoa2:
+                    coluna_matriz = pessoa2 - pessoa1 - 1
+                    custo_relacao =  matriz_relacoes[pessoa1][coluna_matriz]
+                else:
+                    coluna_matriz = pessoa1 - pessoa2 - 1
+                    custo_relacao = matriz_relacoes[pessoa2][coluna_matriz]
+                
+                custo_relacoes += custo_relacao
+
+    return custo_relacoes
+
+# Cria uma solução inicial fazendo a escolha gulosa de pessoas com maior valor disposto a pagar
 def criar_solucao_inicial(instancia):
     pessoas_ordenadas = sorted(instancia.pessoas, key=lambda pessoa: pessoa.valor, reverse=True)
     pessoas_selecionadas = []
-
+    peso_tot = sum(pessoa.peso for pessoa in pessoas_ordenadas)
+    print(peso_tot)
     # Adiciona pessoas com maior valor disposto a pagar primeiro
     for aviao in instancia.avioes:
         peso_disponivel = aviao.capacidade - aviao.peso_atual
@@ -109,8 +131,7 @@ def criar_solucao_inicial(instancia):
         if len(pessoas_ordenadas) > 0:
             for pessoa in pessoas_ordenadas:
                 if pessoa.peso <= peso_disponivel:
-                    aviao.adicionar_pessoa(pessoa.id)
-                    peso_disponivel -= pessoa.peso
+                    aviao.adicionar_pessoa(pessoa)
                     pessoas_selecionadas.append(pessoa)
                     pessoas_ordenadas.remove(pessoa)
                 else:
@@ -145,5 +166,7 @@ def simulated_annealing(instancia, temperatura_inicial, temperatura_final, taxa_
 
 # Teste
 instancia = le_instancia('instances/vf01.dat')
-solucao = simulated_annealing(instancia, 100, 0.01, 0.9, 1000)
-print(solucao)
+solucao_inicial = criar_solucao_inicial(instancia)
+
+print(solucao_inicial.valor)
+#solucao = simulated_annealing(instancia, 100, 0.01, 0.9, 1000)
