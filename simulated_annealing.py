@@ -66,7 +66,7 @@ class Solucao:
     # agraga valor de cada aviao mais o custo das relacoes de amizade
     def calcular_valor_total(self):
         for aviao in self.avioes:
-            print("Peso no aviao: ", aviao.peso_atual)
+            print("Peso no aviao:", aviao.peso_atual)
             self.valor += aviao.calcula_valor() + calcula_custo_relacoes(aviao.pessoas, self.relacoes_amizade)
                 
 # Lê uma instância do arquivo nome_arquivo
@@ -97,7 +97,7 @@ def le_instancia(nome_arquivo):
 # Calcula o custo da relacao entre pessoas num mesmo aviao
 def calcula_custo_relacoes(lista_pessoas, matriz_relacoes):
     custo_relacoes = 0
-    print("Numero de pessoas no aviao", len(lista_pessoas))
+    #print("Numero de pessoas no aviao", len(lista_pessoas))
     if len(lista_pessoas) > 0:
         for i in range(0, len(lista_pessoas) - 1):
             for j in range(i + 1, len(lista_pessoas) - 1):
@@ -119,20 +119,18 @@ def calcula_custo_relacoes(lista_pessoas, matriz_relacoes):
 
 # Cria uma solução inicial fazendo a escolha gulosa de pessoas com maior valor disposto a pagar
 def criar_solucao_inicial(instancia):
-    pessoas_ordenadas = sorted(instancia.pessoas, key=lambda pessoa: pessoa.valor, reverse=True)
+    pessoas_ordenadas = sorted(instancia.pessoas, key=lambda pessoa: int(pessoa.valor/pessoa.peso), reverse=True)
     pessoas_selecionadas = []
     #peso_tot = sum(pessoa.peso for pessoa in pessoas_ordenadas)
     #print(peso_tot)
     # Adiciona pessoas com maior valor disposto a pagar primeiro
     for aviao in instancia.avioes:
-        if len(pessoas_ordenadas) > 0:
+        if len(pessoas_ordenadas) > 0: # Se ainda existem pessoas nao alocadas a avioes
             for pessoa in pessoas_ordenadas:
                 if pessoa.peso + aviao.peso_atual <= aviao.capacidade:
                     aviao.adicionar_pessoa(pessoa)
                     pessoas_selecionadas.append(pessoa)
                     pessoas_ordenadas.remove(pessoa)
-                else:
-                    break
         else:
             break
     return Solucao(pessoas_selecionadas, instancia.avioes, instancia.relacoes_amizade)
@@ -142,11 +140,15 @@ def vizinhanca(sol):
     pessoa_index = random.randint(0, len(nova_sol.pessoas_selecionadas) - 1)
     novo_aviao_index = random.randint(0, len(nova_sol.avioes) - 1)
     nova_sol.pessoas_selecionadas[pessoa_index] = novo_aviao_index * len(nova_sol.avioes) + pessoa_index % len(nova_sol.avioes)
+    nova_sol.calcular_valor_total()
+
     return nova_sol
 
 def simulated_annealing(instancia, temperatura_inicial, temperatura_final, taxa_resfriamento, iteracoes_por_temperatura):
     sol_corrente = criar_solucao_inicial(instancia)
     melhor_sol = sol_corrente
+
+    print("Valor solução inicial", melhor_sol.valor)
 
     temperatura = temperatura_inicial
     while temperatura > temperatura_final:
@@ -159,11 +161,11 @@ def simulated_annealing(instancia, temperatura_inicial, temperatura_final, taxa_
                     melhor_sol = nova_sol
         temperatura *= taxa_resfriamento
 
+    print("Valor da melhor solucao encontrada:", melhor_sol.valor)
     return melhor_sol
 
 # Teste
 instancia = le_instancia('instances/vf01.dat')
-solucao_inicial = criar_solucao_inicial(instancia)
-
-print(solucao_inicial.valor)
-#solucao = simulated_annealing(instancia, 100, 0.01, 0.9, 1000)
+sol_ini = criar_solucao_inicial(instancia)
+print(sol_ini.valor)
+#solucao = simulated_annealing(instancia, 1000, 0.01, 0.90, 1000)
