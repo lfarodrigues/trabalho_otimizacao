@@ -66,6 +66,7 @@ class Solucao:
     # agraga valor de cada aviao mais o custo das relacoes de amizade
     def calcular_valor_total(self):
         for aviao in self.avioes:
+            print("Peso no aviao: ", aviao.peso_atual)
             self.valor += aviao.calcula_valor() + calcula_custo_relacoes(aviao.pessoas, self.relacoes_amizade)
                 
 # Lê uma instância do arquivo nome_arquivo
@@ -120,17 +121,13 @@ def calcula_custo_relacoes(lista_pessoas, matriz_relacoes):
 def criar_solucao_inicial(instancia):
     pessoas_ordenadas = sorted(instancia.pessoas, key=lambda pessoa: pessoa.valor, reverse=True)
     pessoas_selecionadas = []
-    peso_tot = sum(pessoa.peso for pessoa in pessoas_ordenadas)
-    print(peso_tot)
+    #peso_tot = sum(pessoa.peso for pessoa in pessoas_ordenadas)
+    #print(peso_tot)
     # Adiciona pessoas com maior valor disposto a pagar primeiro
     for aviao in instancia.avioes:
-        peso_disponivel = aviao.capacidade - aviao.peso_atual
-        if peso_disponivel <= 0:
-            continue
-
         if len(pessoas_ordenadas) > 0:
             for pessoa in pessoas_ordenadas:
-                if pessoa.peso <= peso_disponivel:
+                if pessoa.peso + aviao.peso_atual <= aviao.capacidade:
                     aviao.adicionar_pessoa(pessoa)
                     pessoas_selecionadas.append(pessoa)
                     pessoas_ordenadas.remove(pessoa)
