@@ -28,9 +28,10 @@ function maximize_plane_value(people_values, people_weights, friendship_values, 
             end
         end
     end 
-    
+
     # Se duas pessoas estão juntas em um avião, o valor da relação entre elas é adicionado ao valor total
     @expression(model, total_friendship_value, (sum(y[i,k,j] * friendship_values[i,k] for i in 1:num_people, k in 1:num_people, j in 1:num_planes)))
+    
     # Função objetivo: maximizar o valor total dos aviões considerando as relações de amizade
     @objective(model, Max, sum(x[i, j] * people_values[i] for i = 1:num_people, j = 1:num_planes)) + total_friendship_value 
 
@@ -72,17 +73,16 @@ function complete_columns_with_zeros(matrix, n)
     completed_matrix = zeros(Int, n, n)
 
     for i in 1:n
-        for j in 1:n
-            if j <= n - i
-                completed_matrix[i, j] = matrix[i][j]
-            end          
+        for j in n:-1:1
+            if j > i
+                completed_matrix[i, j] = matrix[i][j - i]
+                # Atribuir elementos de matrix aos elementos correspondentes na diagonal inferior
+                completed_matrix[j, i] = matrix[i][j - i]      
+            end   
         end
     end
-
     return completed_matrix
 end
-
-
 
 n_pessoas, valores_pessoas, relacoes_amizade, pesos_pessoas = le_instancia("instances/vf01.dat")
 m = 10
@@ -91,5 +91,7 @@ capacidade_por_aviao = calcula_capacidade_aviao(m, pesos_pessoas)
 avioes = fill(200, m)
 
 matrix_completa = complete_columns_with_zeros(relacoes_amizade, n_pessoas)
+
+println(matrix_completa)
 
 maximize_plane_value(valores_pessoas, pesos_pessoas, matrix_completa, avioes)
