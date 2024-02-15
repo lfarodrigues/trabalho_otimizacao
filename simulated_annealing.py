@@ -66,7 +66,7 @@ class Solucao:
     # agraga valor de cada aviao mais o custo das relacoes de amizade
     def calcular_valor_total(self):
         for aviao in self.avioes:
-            print("Peso no aviao:", aviao.peso_atual)
+            #print("Peso no aviao:", aviao.peso_atual)
             self.valor += aviao.calcula_valor() + calcula_custo_relacoes(aviao.pessoas, self.relacoes_amizade)
                 
 # Lê uma instância do arquivo nome_arquivo
@@ -148,7 +148,7 @@ def simulated_annealing(instancia, temperatura_inicial, temperatura_final, taxa_
     sol_corrente = criar_solucao_inicial(instancia)
     melhor_sol = sol_corrente
 
-    print("Valor solução inicial", melhor_sol.valor)
+    #print("Valor solução inicial", melhor_sol.valor)
 
     temperatura = temperatura_inicial
     while temperatura > temperatura_final:
@@ -166,6 +166,6 @@ def simulated_annealing(instancia, temperatura_inicial, temperatura_final, taxa_
 
 # Teste
 instancia = le_instancia('instances/vf01.dat')
-sol_ini = criar_solucao_inicial(instancia)
-print(sol_ini.valor)
-#solucao = simulated_annealing(instancia, 1000, 0.01, 0.90, 1000)
+#sol_ini = criar_solucao_inicial(instancia)
+#print(sol_ini.valor)
+solucao = simulated_annealing(instancia, 1000, 0.01, 0.90, 1000)

@@ -21,31 +21,34 @@ function maximize_plane_value(people_values, people_weights, friendship_values, 
     end
     
     # Se duas pessoas estão juntas em um avião, a variável auxiliar correspondente é 1
+    #= 
     for i in 1:num_people
         for k in 1:num_people
             for j in 1:num_planes
                 @constraint(model, y[i, k, j] >= x[i, j] + x[k, j] - 1)
             end
         end
-    end
+    end 
+    =#
     
     # Se duas pessoas estão juntas em um avião, o valor da relação entre elas é adicionado ao valor total
-    @expression(model, total_friendship_value, sum(y[i, k, j] * friendship_values[i, k] for i in 1:num_people for k in i:num_people for j in 1:num_planes))
+    @expression(model, total_friendship_value, sum(y[i, k, j] * friendship_values[i, k] for i in 1:num_people for k in 1:num_people-i for j in 1:num_planes))
 
     # Função objetivo: maximizar o valor total dos aviões considerando as relações de amizade
-    @objective(model, Max, sum(x[i, j] * people_values[i] for i = 1:num_people, j = 1:num_planes) + total_friendship_value)    
+    @objective(model, Max, sum(x[i, j] * people_values[i] for i = 1:num_people, j = 1:num_planes)) + total_friendship_value 
 
     optimize!(model)
     
+    println("Status da otimização: ", termination_status(model))
+
     if termination_status(model) == MOI.OPTIMAL
-        allocation = value.(x)
-        return allocation
+        println("Valor ótimo (soma de preferências): ", objective_value(m))
+
     else
         println("No optimal solution found.")
         return nothing
     end
 end
-
 
 function le_instancia(nome_arquivo::AbstractString)
     linhas = readlines(nome_arquivo)
@@ -53,7 +56,7 @@ function le_instancia(nome_arquivo::AbstractString)
     numero_pessoas = parse(Int, linhas[1])
     valores_pessoas = parse.(Int, split(linhas[2]))
     relacoes_amizade = [parse.(Int, split(linha)) for linha in linhas[3:numero_pessoas+2]]
-    pesos_pessoas = parse.(Int, split(linhas[4 + numero_pessoas]))
+    pesos_pessoas = parse.(Int, split(linhas[5 + numero_pessoas]))
 
     return numero_pessoas, valores_pessoas, relacoes_amizade, pesos_pessoas
 end
