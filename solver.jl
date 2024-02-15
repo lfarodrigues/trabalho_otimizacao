@@ -21,7 +21,6 @@ function maximize_plane_value(people_values, people_weights, friendship_values, 
     end
     
     # Se duas pessoas estão juntas em um avião, a variável auxiliar correspondente é 1
-     
     for i in 1:num_people
         for k in 1:num_people
             for j in 1:num_planes
@@ -31,7 +30,7 @@ function maximize_plane_value(people_values, people_weights, friendship_values, 
     end 
     
     # Se duas pessoas estão juntas em um avião, o valor da relação entre elas é adicionado ao valor total
-    @expression(model, total_friendship_value,  (sum(y[i,k,j] * friendship_values[i,k] for i in 1:num_people, k in 1:num_people, j in 1:num_planes)))
+    @expression(model, total_friendship_value, (sum(y[i,k,j] * friendship_values[i,k] for i in 1:num_people, k in 1:num_people, j in 1:num_planes)))
     # Função objetivo: maximizar o valor total dos aviões considerando as relações de amizade
     @objective(model, Max, sum(x[i, j] * people_values[i] for i = 1:num_people, j = 1:num_planes)) + total_friendship_value 
 
@@ -40,7 +39,7 @@ function maximize_plane_value(people_values, people_weights, friendship_values, 
     println("Status da otimização: ", termination_status(model))
 
     if termination_status(model) == MOI.OPTIMAL
-        println("Valor ótimo (soma de preferências): ", objective_value(m))
+        println("Valor ótimo (soma de preferências): ", objective_value(model))
 
     else
         println("No optimal solution found.")
@@ -88,9 +87,9 @@ end
 n_pessoas, valores_pessoas, relacoes_amizade, pesos_pessoas = le_instancia("instances/vf01.dat")
 m = 10
 capacidade_por_aviao = calcula_capacidade_aviao(m, pesos_pessoas)
-avioes = fill(capacidade_por_aviao, m)
+
+avioes = fill(200, m)
 
 matrix_completa = complete_columns_with_zeros(relacoes_amizade, n_pessoas)
 
-println(matrix_completa)
 maximize_plane_value(valores_pessoas, pesos_pessoas, matrix_completa, avioes)
