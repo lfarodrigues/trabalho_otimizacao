@@ -50,6 +50,25 @@ function maximize_plane_value(people_values, people_weights, friendship_values, 
     end
 end
 
+# function le_instancia(nome_arquivo::AbstractString)
+#     linhas = readlines(nome_arquivo)
+    
+#     numero_pessoas = parse(Int, linhas[1])
+#     valores_pessoas = parse.(Int, split(linhas[2]))
+#     relacoes_amizade = []
+#     numbers = zeros(Int64,60,60)
+#     for linha in linhas[3:numero_pessoas+2]
+#         for col in 1:length(linha)
+#             numbers[linha][col] = parse.(Int, split(linha))
+#             push!(relacoes_amizade, numbers)
+#         end
+#     end
+#     pesos_pessoas = parse.(Int, split(linhas[5 + numero_pessoas]))
+
+#     return numero_pessoas, valores_pessoas, relacoes_amizade, pesos_pessoas
+# end
+
+
 function calcula_valor_amizade(y, fv,num_people,num_planes)
     aux= zeros(Int8, 60,60)
     aux = fv
