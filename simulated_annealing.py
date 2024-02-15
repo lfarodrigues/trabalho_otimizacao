@@ -165,7 +165,7 @@ def simulated_annealing(instancia, temperatura_inicial, temperatura_final, taxa_
     return melhor_sol
 
 # Teste
-instancia = le_instancia('instances/vf01.dat')
+instancia = le_instancia('instances/vf02.dat')
 #sol_ini = criar_solucao_inicial(instancia)
 #print(sol_ini.valor)
 solucao = simulated_annealing(instancia, 1000, 0.01, 0.90, 1000)
