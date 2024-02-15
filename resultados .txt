@@ -1,0 +1,11 @@
+resultados 
+vf01 - Valor solução inicial 5044 Valor da melhor solucao encontrada: 12676
+vf02 - Valor solução inicial 5093 Valor da melhor solucao encontrada: 13098
+vf03 - Valor solução inicial 4983 Valor da melhor solucao encontrada: 12684
+vf04 - Valor solução inicial 5330 Valor da melhor solucao encontrada: 14190
+vf05 - Valor solução inicial 5683 Valor da melhor solucao encontrada: 13618
+vf06 - Valor solução inicial 5874 Valor da melhor solucao encontrada: 14644
+vf07 - Valor solução inicial 5597 Valor da melhor solucao encontrada: 12900
+vf08 - Valor solução inicial 7076 Valor da melhor solucao encontrada: 15610
+vf09 - Valor solução inicial 6301 Valor da melhor solucao encontrada: 15260
+vf10 - Valor solução inicial 5657 Valor da melhor solucao encontrada: 13038

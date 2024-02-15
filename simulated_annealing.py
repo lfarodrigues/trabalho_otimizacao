@@ -123,7 +123,7 @@ def calcula_custo_relacoes(lista_pessoas, matriz_relacoes):
                 
                 custo_relacao = matriz_relacoes[pessoa1][coluna]
 
-                print(f"Custo da relação de ({pessoa1}, {pessoa2}):", custo_relacao)
+                #print(f"Custo da relação de ({pessoa1}, {pessoa2}):", custo_relacao)
                 custo_relacoes += custo_relacao
 
     return custo_relacoes
@@ -216,9 +216,9 @@ def mostra_resultado(solucao):
     print("Valor da melhor solucao encontrada:", solucao.valor)
 
 # Teste
-instancia = le_instancia('instances/vf02.dat')
-solucao = criar_solucao_inicial(instancia)
+instancia = le_instancia('instances/vf01.dat')
+#solucao = criar_solucao_inicial(instancia)
 #print(sol_ini.valor)
-#solucao = simulated_annealing(instancia, 1000, 0.01, 0.95, 1000)
+solucao = simulated_annealing(instancia, 1000, 0.01, 0.95, 1000)
 
 mostra_resultado(solucao)
