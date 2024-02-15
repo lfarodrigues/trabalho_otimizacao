@@ -1,6 +1,7 @@
 import random
 import math
 
+n_pessoas = 0
 class Pessoa:
     def __init__(self, valor, peso):
         self.id = 0
@@ -30,6 +31,8 @@ class Aviao:
     def calcula_valor(self):
         return sum(pessoa.valor for pessoa in self.pessoas)
 
+    def calcula_peso(self):
+        return sum(pessoa.peso for pessoa in self.pessoas)
 class Instancia:
     def __init__(self, pessoas, avioes, relacoes_amizade):
         self.pessoas = pessoas
@@ -104,56 +107,87 @@ def calcula_custo_relacoes(lista_pessoas, matriz_relacoes):
                 pessoa1 = lista_pessoas[i].id
                 pessoa2 = lista_pessoas[j].id
 
+                #print(f"Pessoa1 {pessoa1} Pessoa2 {pessoa2}")
+
                 custo_relacao = 0
 
-                if pessoa1 < pessoa2:
-                    coluna_matriz = pessoa2 - pessoa1 - 1
-                    custo_relacao =  matriz_relacoes[pessoa1][coluna_matriz]
-                else:
-                    coluna_matriz = pessoa1 - pessoa2 - 1
-                    custo_relacao = matriz_relacoes[pessoa2][coluna_matriz]
+                if pessoa1 > pessoa2:
+                    temp = pessoa2
+                    pessoa2 = pessoa1
+                    pessoa1 = temp
+
+                diff_cols = pessoa1 + 1
+                coluna = pessoa2 - diff_cols
                 
+                #print(f"Indice linha {pessoa1} Indice coluna {coluna}")
+                
+                custo_relacao = matriz_relacoes[pessoa1][coluna]
+
+                print(f"Custo da relação de ({pessoa1}, {pessoa2}):", custo_relacao)
                 custo_relacoes += custo_relacao
 
     return custo_relacoes
 
 # Cria uma solução inicial fazendo a escolha gulosa de pessoas com maior valor disposto a pagar
-def criar_solucao_inicial(instancia):
-    pessoas_ordenadas = sorted(instancia.pessoas, key=lambda pessoa: int(pessoa.valor/pessoa.peso), reverse=True)
+def criar_solucao_inicial(instancia):   
+    # Ordenar pessoas pela relação valor/peso
+    pessoas_ordenadas = sorted(instancia.pessoas, key=lambda pessoa: pessoa.valor / pessoa.peso, reverse=True)
     pessoas_selecionadas = []
-    #peso_tot = sum(pessoa.peso for pessoa in pessoas_ordenadas)
-    #print(peso_tot)
-    # Adiciona pessoas com maior valor disposto a pagar primeiro
+    
     for aviao in instancia.avioes:
-        if len(pessoas_ordenadas) > 0: # Se ainda existem pessoas nao alocadas a avioes
-            for pessoa in pessoas_ordenadas:
-                if pessoa.peso + aviao.peso_atual <= aviao.capacidade:
-                    aviao.adicionar_pessoa(pessoa)
-                    pessoas_selecionadas.append(pessoa)
-                    pessoas_ordenadas.remove(pessoa)
-        else:
-            break
+        for pessoa in pessoas_ordenadas:
+            if (aviao.calcula_peso() + pessoa.peso) <= aviao.capacidade:
+                aviao.pessoas.append(pessoa)
+                pessoas_selecionadas.append(pessoa)
+                pessoas_ordenadas.remove(pessoa)
+
     return Solucao(pessoas_selecionadas, instancia.avioes, instancia.relacoes_amizade)
 
-def vizinhanca(sol):
+def vizinhanca_aleatoria(sol):
     nova_sol = Solucao(sol.pessoas_selecionadas.copy(), sol.avioes, sol.relacoes_amizade)
-    pessoa_index = random.randint(0, len(nova_sol.pessoas_selecionadas) - 1)
-    novo_aviao_index = random.randint(0, len(nova_sol.avioes) - 1)
-    nova_sol.pessoas_selecionadas[pessoa_index] = novo_aviao_index * len(nova_sol.avioes) + pessoa_index % len(nova_sol.avioes)
-    nova_sol.calcular_valor_total()
+    num_avioes = len(sol.avioes)
+    # Seleciona um avião aleatório
+    aviao1 = random.randrange(num_avioes)
 
+    # Seleciona uma pessoa aleatória do avião selecionado
+    indice_pessoa1 = random.randrange(len(nova_sol.avioes[aviao1].pessoas))
+    pessoa1 = nova_sol.avioes[aviao1].pessoas[indice_pessoa1]
+
+    # Seleciona outro avião diferente do avião selecionado
+    aviao2 = (aviao1 + random.randint(1, num_avioes - 1)) % num_avioes
+
+    # Seleciona uma pessoa aleatória do avião selecionado
+    indice_pessoa2 = random.randrange(len(nova_sol.avioes[aviao2].pessoas))
+    pessoa2 = nova_sol.avioes[aviao2].pessoas[indice_pessoa2]
+    
+    # Calcula a capacidade após a troca
+    capacidade_aviao1 = nova_sol.avioes[aviao1].capacidade
+    capacidade_aviao2 = nova_sol.avioes[aviao2].capacidade
+
+    novo_peso_aviao1= nova_sol.avioes[aviao1].calcula_peso() - pessoa1.peso + pessoa2.peso
+    novo_peso_aviao2 = nova_sol.avioes[aviao2].calcula_peso() - pessoa2.peso + pessoa1.peso
+
+    # Verifica se a capacidade é respeitada para ambos os aviões
+    if novo_peso_aviao1 <= capacidade_aviao1 and novo_peso_aviao2 <= capacidade_aviao2:
+        nova_sol.avioes[aviao1].remover_pessoa(indice_pessoa1)
+        nova_sol.avioes[aviao2].remover_pessoa(indice_pessoa2)
+
+        nova_sol.avioes[aviao1].adicionar_pessoa(pessoa2)
+        nova_sol.avioes[aviao2].adicionar_pessoa(pessoa1)
+
+    nova_sol.calcular_valor_total()
     return nova_sol
 
 def simulated_annealing(instancia, temperatura_inicial, temperatura_final, taxa_resfriamento, iteracoes_por_temperatura):
     sol_corrente = criar_solucao_inicial(instancia)
     melhor_sol = sol_corrente
 
-    #print("Valor solução inicial", melhor_sol.valor)
+    print("Valor solução inicial", melhor_sol.valor)
 
     temperatura = temperatura_inicial
     while temperatura > temperatura_final:
         for _ in range(iteracoes_por_temperatura):
-            nova_sol = vizinhanca(sol_corrente)
+            nova_sol = vizinhanca_aleatoria(sol_corrente)
             delta = nova_sol.valor - sol_corrente.valor
             if delta > 0 or random.random() < math.exp(delta / temperatura):
                 sol_corrente = nova_sol
@@ -161,11 +195,30 @@ def simulated_annealing(instancia, temperatura_inicial, temperatura_final, taxa_
                     melhor_sol = nova_sol
         temperatura *= taxa_resfriamento
 
-    print("Valor da melhor solucao encontrada:", melhor_sol.valor)
     return melhor_sol
+
+def mostra_resultado(solucao):
+    i = 1
+    for aviao in solucao.avioes:
+        ids = []
+        valores = []
+        pesos = []
+        for pessoa in aviao.pessoas:
+            ids.append(pessoa.id)
+            valores.append(pessoa.valor)
+            pesos.append(pessoa.peso)
+        print(f"Alocação de pessoas no aviao {i}:", ids)
+        print(f"Valores no aviao {i}:", valores)
+        print(f"Pesos no aviao {i}:", pesos)
+
+        i+=1
+        
+    print("Valor da melhor solucao encontrada:", solucao.valor)
 
 # Teste
 instancia = le_instancia('instances/vf02.dat')
-#sol_ini = criar_solucao_inicial(instancia)
+solucao = criar_solucao_inicial(instancia)
 #print(sol_ini.valor)
-solucao = simulated_annealing(instancia, 1000, 0.01, 0.90, 1000)
+#solucao = simulated_annealing(instancia, 1000, 0.01, 0.95, 1000)
+
+mostra_resultado(solucao)
